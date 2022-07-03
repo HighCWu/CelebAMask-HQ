@@ -98,15 +98,20 @@ class Tester(object):
             print (i)
             imgs = []
             for j in range(self.batch_size):
-                path = test_paths[i * self.batch_size + j]
+                idx = i * self.batch_size + j
+                if idx == len(test_paths):
+                    break
+                path = test_paths[idx]
                 img = transform(Image.open(path))
                 imgs.append(img)
+            if len(imgs) == 0:
+                break
             imgs = torch.stack(imgs) 
             imgs = imgs.cuda()
             labels_predict = self.G(imgs)
-            labels_predict_plain = generate_label_plain(labels_predict)
-            labels_predict_color = generate_label(labels_predict)
-            for k in range(self.batch_size):
+            labels_predict_plain = generate_label_plain(labels_predict, self.imsize)
+            labels_predict_color = generate_label(labels_predict, self.imsize)
+            for k in range(len(imgs)):
                 cv2.imwrite(os.path.join(self.test_label_path, str(i * self.batch_size + k) +'.png'), labels_predict_plain[k])
                 save_image(labels_predict_color[k], os.path.join(self.test_color_label_path, str(i * self.batch_size + k) +'.png'))
 
